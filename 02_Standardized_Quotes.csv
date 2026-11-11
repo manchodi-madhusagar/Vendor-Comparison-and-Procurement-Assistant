@@ -1,0 +1,4 @@
+﻿quote_id,vendor_id,vendor,qty,unit_price,shipping,gst_rate,warranty_months,lead_days,support,spec,valid_until,terms,note,landed_cost
+Q-A-2026-101,Vendor A,Apex Scan Solutions,20,5800,4000,0.18,18,7,8,2D USB,11/15/2026,Payment after delivery and verification,Warehouse support by phone and email,141600
+Q-B-2026-205,Vendor B,BluePeak Devices,20,5950,0,0.18,24,5,9,2D USB,11/20/2026,Net 30 days from accepted invoice,Priority remote installation support,140420
+Q-C-2026-309,Vendor C,MetroTrack Technologies,20,5400,7500,0.18,12,12,6,2D USB,11/5/2026,"50% advance, 50% after delivery",Standard email support,136290

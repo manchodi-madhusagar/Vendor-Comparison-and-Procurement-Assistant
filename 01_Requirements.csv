@@ -1,0 +1,15 @@
+﻿Field,Value,Notes
+Company,Nova Retail Distribution Pvt. Ltd.,Entire company and all vendors are fictional
+Category,Wired handheld 2D barcode scanners,Single comparable purchasing category
+Quantity,20,pieces
+Minimum specification,2D USB,Must meet 2D barcode plus USB interface
+Maximum budget (INR),145000,"Gross, including GST and freight"
+Maximum lead time (days),15,Business-policy training assumption
+Minimum warranty (months),12,Training assumption
+GST,0.18,Demonstration assumption; confirm real-world tax treatment
+Price weight,0.4,Weights total 1.0
+Warranty weight,0.25,Weights total 1.0
+Delivery weight,0.2,Weights total 1.0
+Support weight,0.15,Weights total 1.0
+Warranty score cap (months),24,24 or more earns 100
+Procurement outcome,Human review only,No PO creation or purchase/financial commitment

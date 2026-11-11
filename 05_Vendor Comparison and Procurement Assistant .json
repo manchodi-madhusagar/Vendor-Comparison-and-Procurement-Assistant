@@ -1,0 +1,339 @@
+{
+  "name": "CAPSTONE 4 - Vendor Comparison and Human Approval (DEMO ONLY)",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Nova Retail | Purchase Request",
+        "formDescription": "Upload the supplier quotations (PDF or image) for 20 wired 2D USB barcode scanners.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Reviewer Name",
+              "placeholder": "Enter your name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Purchase Request ID",
+              "defaultValue": "PR-NOVA-001",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Quotation Files",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf,.png,.jpg,.jpeg",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Upload and analyze quotations"
+        }
+      },
+      "id": "46dabef0-cf78-4d33-a413-586505a73b20",
+      "name": "Procurement Intake Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        32
+      ],
+      "webhookId": "a8426945-df69-410f-ae2b-0b1a2354fcfa"
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "models/gemini-3.1-flash-lite",
+          "cachedResultName": "Gemini 3.1 Flash Lite"
+        },
+        "text": "You are a procurement extraction assistant for Nova Retail Distribution Pvt. Ltd.\nEach attached document is one supplier quotation for wired handheld 2D USB barcode scanners.\nExtract every quotation into the JSON structure below. Assign vendorId in attachment order: \"Vendor A\", \"Vendor B\", \"Vendor C\", and so on.\nRules:\n- Numbers must be plain numbers (no currency symbols or commas). unitPrice and freight are in INR, excluding GST.\n- gstRate is a decimal (18% = 0.18). If GST is not stated, use 0.18.\n- freight is 0 if delivery is free or included.\n- deliveryDays is the number of days to deliver; warrantyMonths is in months.\n- validUntil is an ISO date (YYYY-MM-DD).\n- supportOutOfTen: priority/remote installation support = 9, phone and email support = 8, email-only/standard support = 6, otherwise your best estimate from 0 to 10.\n- specification: short text such as \"2D USB\" exactly as confirmed by the quote.\nReturn ONLY valid JSON, no markdown, in this exact structure:\n{\"quotes\":[{\"quoteId\":\"\",\"vendorId\":\"Vendor A\",\"vendor\":\"\",\"quantity\":0,\"unitPrice\":0,\"freight\":0,\"gstRate\":0.18,\"warrantyMonths\":0,\"deliveryDays\":0,\"supportOutOfTen\":0,\"specification\":\"\",\"validUntil\":\"\",\"paymentTerms\":\"\",\"supportNotes\":\"\"}],\"aiExecutiveSummary\":\"Two-sentence comparison of cost, warranty, delivery and payment terms.\"}",
+        "inputType": "binary",
+        "binaryPropertyName": "={{ Object.keys($binary || {}).join(\",\") }}",
+        "options": {
+          "maxOutputTokens": 8192
+        }
+      },
+      "id": "8acca2d2-918d-4c8a-a6ff-bec45659be19",
+      "name": "Analyze Quotations with Gemini",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "4yYotQrKMh6AlYmM",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Primary Gemini model failed (e.g. 503 high demand). Re-attach the uploaded files for the backup model.\nconst f = $('Procurement Intake Form').first();\nreturn [{ json: f.json, binary: f.binary }];\n"
+      },
+      "id": "5ec15e9e-3c2b-4927-8fee-4647067a4704",
+      "name": "Restore Uploaded Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "models/gemini-3.5-flash-lite",
+          "cachedResultName": "Gemini 3.5 Flash Lite"
+        },
+        "text": "You are a procurement extraction assistant for Nova Retail Distribution Pvt. Ltd.\nEach attached document is one supplier quotation for wired handheld 2D USB barcode scanners.\nExtract every quotation into the JSON structure below. Assign vendorId in attachment order: \"Vendor A\", \"Vendor B\", \"Vendor C\", and so on.\nRules:\n- Numbers must be plain numbers (no currency symbols or commas). unitPrice and freight are in INR, excluding GST.\n- gstRate is a decimal (18% = 0.18). If GST is not stated, use 0.18.\n- freight is 0 if delivery is free or included.\n- deliveryDays is the number of days to deliver; warrantyMonths is in months.\n- validUntil is an ISO date (YYYY-MM-DD).\n- supportOutOfTen: priority/remote installation support = 9, phone and email support = 8, email-only/standard support = 6, otherwise your best estimate from 0 to 10.\n- specification: short text such as \"2D USB\" exactly as confirmed by the quote.\nReturn ONLY valid JSON, no markdown, in this exact structure:\n{\"quotes\":[{\"quoteId\":\"\",\"vendorId\":\"Vendor A\",\"vendor\":\"\",\"quantity\":0,\"unitPrice\":0,\"freight\":0,\"gstRate\":0.18,\"warrantyMonths\":0,\"deliveryDays\":0,\"supportOutOfTen\":0,\"specification\":\"\",\"validUntil\":\"\",\"paymentTerms\":\"\",\"supportNotes\":\"\"}],\"aiExecutiveSummary\":\"Two-sentence comparison of cost, warranty, delivery and payment terms.\"}",
+        "inputType": "binary",
+        "binaryPropertyName": "={{ Object.keys($binary || {}).join(\",\") }}",
+        "options": {
+          "maxOutputTokens": 8192
+        }
+      },
+      "id": "bd1b11fd-c8a0-4f64-9690-0faa95a944f7",
+      "name": "Analyze Quotations (Backup Model)",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        80
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "4yYotQrKMh6AlYmM",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Node 3 - Validate intake, parse the Gemini analysis of the uploaded quotations, and load policy.\nconst source = $('Procurement Intake Form').first().json;\nconst reviewer = String(source.reviewer_name ?? source['Reviewer Name'] ?? '').trim();\nconst purchaseRequest = String(source.purchase_request ?? source['Purchase Request ID'] ?? 'PR-NOVA-001').trim();\nif (!reviewer) throw new Error('Reviewer name is required');\nif (!/^PR-[A-Z0-9-]{3,30}$/i.test(purchaseRequest)) throw new Error('Enter a valid demo PR reference, for example PR-NOVA-001');\nconst requirements = {\n  company: 'Nova Retail Distribution Pvt. Ltd. (fictional)',\n  category: 'Wired handheld 2D barcode scanners with USB',\n  quantity: 20, minimumSpecification: '2D USB',\n  maxLandedBudgetINR: 145000, maxDeliveryDays: 15, minimumWarrantyMonths: 12,\n  taxBasis: 'Demo-only: 18% applied to goods plus freight',\n  scoreWeights: { price: 0.40, warranty: 0.25, delivery: 0.20, support: 0.15 },\n  warrantyScoreCapMonths: 24, evaluationSnapshotDate: '2026-10-25'\n};\nconst g = $input.first().json;\nconst raw = g?.content?.parts?.map(p => p.text || '').join('')\n  ?? g?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('')\n  ?? g?.text ?? (typeof g?.content === 'string' ? g.content : '');\nif (!raw) throw new Error('Gemini returned no analysis for the uploaded quotations');\nlet parsed;\ntry {\n  const cleaned = String(raw).replace(/^\\s*\\`\\`\\`(?:json)?/i, '').replace(/\\`\\`\\`\\s*$/, '').trim();\n  const firstBrace = cleaned.indexOf('{');\n  const lastBrace = cleaned.lastIndexOf('}');\n  parsed = JSON.parse(cleaned.slice(firstBrace, lastBrace + 1));\n} catch (e) {\n  throw new Error('Could not read Gemini output as JSON: ' + String(raw).slice(0, 300));\n}\nconst num = v => (typeof v === 'number' ? v : Number(String(v ?? '').replace(/[^0-9.\\-]/g, '')));\nconst quotes = (parsed.quotes || []).map((q, i) => ({\n  quoteId: String(q.quoteId || ('Q-' + (i + 1))),\n  vendorId: String(q.vendorId || ('Vendor ' + String.fromCharCode(65 + i))),\n  vendor: String(q.vendor || 'Unknown supplier'),\n  quantity: num(q.quantity), unitPrice: num(q.unitPrice), freight: num(q.freight ?? 0),\n  gstRate: num(q.gstRate ?? 0.18) > 1 ? num(q.gstRate) / 100 : num(q.gstRate ?? 0.18),\n  warrantyMonths: num(q.warrantyMonths), deliveryDays: num(q.deliveryDays), supportOutOfTen: num(q.supportOutOfTen),\n  specification: String(q.specification || ''), validUntil: String(q.validUntil || ''),\n  paymentTerms: String(q.paymentTerms || ''), supportNotes: String(q.supportNotes || '')\n}));\nif (quotes.length === 0) throw new Error('Gemini did not find any quotations in the uploaded files');\nconst aiExecutiveSummary = String(parsed.aiExecutiveSummary || '');\nreturn [{json:{reviewer,purchaseRequest,requirements,quotes,aiExecutiveSummary,fictional:true}}];\n"
+      },
+      "id": "5749fd67-5ccd-4246-a54d-0deffde7ac09",
+      "name": "Load Uploaded Quotes and Policy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Node 3 - Validate, compare and prepare a READ-ONLY scorecard.\nconst input = $input.first().json;\nconst {requirements:r,quotes} = input;\nconst round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;\nconst esc = val => String(val).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\nconst processed = quotes.map(q => {\n  const reasons=[];\n  const nums=[q.quantity,q.unitPrice,q.freight,q.gstRate,q.warrantyMonths,q.deliveryDays,q.supportOutOfTen];\n  if(nums.some(x=>!Number.isFinite(x))) reasons.push('Missing or invalid numeric value');\n  if(q.quantity!==r.quantity) reasons.push('Quantity must equal '+r.quantity);\n  if(q.unitPrice<=0 || q.freight<0 || q.gstRate<0) reasons.push('Invalid pricing');\n  if(!/2D/i.test(q.specification||'') || !/USB/i.test(q.specification||'')) reasons.push('Does not confirm wired 2D USB specification');\n  if(q.warrantyMonths<r.minimumWarrantyMonths) reasons.push('Warranty below minimum');\n  if(q.deliveryDays<=0 || q.deliveryDays>r.maxDeliveryDays) reasons.push('Delivery outside policy');\n  if(q.supportOutOfTen<0 || q.supportOutOfTen>10) reasons.push('Support rating outside 0-10');\n  const subtotal = round2(q.quantity*q.unitPrice+q.freight);\n  const tax = round2(subtotal*q.gstRate);\n  const landedCost = round2(subtotal+tax);\n  if(landedCost>r.maxLandedBudgetINR) reasons.push('Exceeds landed budget');\n  if(!q.validUntil || q.validUntil<r.evaluationSnapshotDate) reasons.push('Quote expired on the fixed 2026-10-25 snapshot');\n  return {...q,subtotal,tax,landedCost,eligible:reasons.length===0,policyFlags:reasons};\n});\nconst eligible=processed.filter(q=>q.eligible);\nif(eligible.length===0) throw new Error('No eligible suppliers. Review the quote inputs and mandatory criteria; never auto-approve an exception.');\nconst minimumCost=Math.min(...eligible.map(q=>q.landedCost));\nconst fastestDays=Math.min(...eligible.map(q=>q.deliveryDays));\nfor (const q of processed) {\n  if (!q.eligible) {q.score=null;q.scoreBreakdown=null;continue;}\n  const scores = {\n    price: minimumCost/q.landedCost*100,\n    warranty: Math.min(q.warrantyMonths/r.warrantyScoreCapMonths,1)*100,\n    delivery: fastestDays/q.deliveryDays*100,\n    support: q.supportOutOfTen*10\n  };\n  q.scoreBreakdown=Object.fromEntries(Object.entries(scores).map(([k,v])=>[k,round2(v)]));\n  q.score=round2(scores.price*r.scoreWeights.price + scores.warranty*r.scoreWeights.warranty + scores.delivery*r.scoreWeights.delivery + scores.support*r.scoreWeights.support);\n}\nprocessed.sort((a,b) => (b.eligible-a.eligible) || ((b.score??-1)-(a.score??-1)) || a.landedCost-b.landedCost || a.vendorId.localeCompare(b.vendorId));\nconst proposed=processed.find(q=>q.eligible);\nconst inr=n=>'INR '+n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});\nconst rows=processed.map(q=>`<tr><td style=\"padding:7px;border-bottom:1px solid #ddd\"><b>${esc(q.vendorId)}</b> - ${esc(q.vendor)}</td><td style=\"padding:7px;border-bottom:1px solid #ddd\">${inr(q.landedCost)}</td><td style=\"padding:7px;border-bottom:1px solid #ddd\">${q.deliveryDays} days</td><td style=\"padding:7px;border-bottom:1px solid #ddd\">${q.warrantyMonths} mo</td><td style=\"padding:7px;border-bottom:1px solid #ddd\">${q.eligible?q.score.toFixed(2):'INELIGIBLE'}</td></tr>`).join('');\nconst reviewHtml=`<div style=\"font-family:Arial,sans-serif;max-width:100%\"><div style=\"padding:12px;background:#eff6ff;border-left:4px solid #2563eb\"><b>Recommended (automated, not approved): ${esc(proposed.vendorId)} - ${esc(proposed.vendor)}</b><div>Score ${proposed.score.toFixed(2)}/100 &nbsp;|&nbsp; ${inr(proposed.landedCost)} &nbsp;|&nbsp; Request ${esc(input.purchaseRequest)}</div></div>${input.aiExecutiveSummary?`<p style=\"font-size:12px;background:#f8fafc;padding:8px;border:1px solid #e2e8f0\"><b>Gemini summary of uploaded quotations:</b> ${esc(input.aiExecutiveSummary)}</p>`:''}<p><b>Uploaded quotation comparison (20 units)</b></p><div style=\"overflow-x:auto\"><table style=\"border-collapse:collapse;width:100%;font-size:12px\"><tr style=\"background:#e2e8f0\"><th style=\"padding:7px;text-align:left\">Supplier</th><th style=\"padding:7px;text-align:left\">Landed cost</th><th style=\"padding:7px\">Delivery</th><th style=\"padding:7px\">Warranty</th><th style=\"padding:7px\">Weighted score /100</th></tr>${rows}</table></div><p style=\"font-size:12px\">Policy: <= INR 145,000; delivery <= 15 days; warranty >= 12 months; 2D USB, 20 units. Scores: landed price 40%, warranty 25%, delivery 20%, fictional support 15%. Freight + demo GST included. Payment terms are shown for review and are not automatically prohibited.</p><p style=\"color:#b91c1c\"><b>DEMO ONLY:</b> Choosing Approve here records a simulated procurement decision. NO order, supplier email or payment is sent. You may override with a clear reason.</p></div>`;\nconst reviewFormFields = [\n  {fieldType:'html',html:reviewHtml},\n  {fieldLabel:'Decision',fieldName:'decision',fieldType:'dropdown',fieldOptions:{values:[{option:'Approve selected vendor (SIMULATION)'},{option:'Reject all - request fresh quotes'}]},defaultValue:'Approve selected vendor (SIMULATION)',requiredField:true},\n  {fieldLabel:'Selected Vendor',fieldName:'selected_vendor',fieldType:'dropdown',fieldOptions:{values:processed.map(q=>({option:q.vendorId}))},defaultValue:proposed.vendorId,requiredField:true},\n  {fieldLabel:'Reason / Notes',fieldName:'review_notes',fieldType:'textarea',placeholder:'Required (10+ characters) if you choose a vendor other than '+proposed.vendorId+' or reject all quotes.'}\n];\nreturn [{json:{...input,quotes:processed,proposedVendorId:proposed.vendorId,proposedVendorName:proposed.vendor,proposedScore:proposed.score,reviewHtml,reviewFormFields,scoringAsOf:r.evaluationSnapshotDate}}];\n"
+      },
+      "id": "76d77009-bcac-4716-b50c-4a6342df1dc1",
+      "name": "Score and Prepare Review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ JSON.stringify($json.reviewFormFields) }}",
+        "options": {
+          "formTitle": "Human Procurement Review ",
+          "formDescription": "Inspect the comparison above, then choose. Approval is simulated and does not initiate procurement.",
+          "buttonLabel": "Record simulated decision"
+        }
+      },
+      "id": "db1c55fd-3c06-40cb-a38d-29a39e22cb7b",
+      "name": "Human Decision Form",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        1520,
+        32
+      ],
+      "notesInFlow": false,
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "webhookId": "5b5a71a0-579f-4c4f-ac3f-60ed85762b80",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Node 5 - Enforce human-in-the-loop constraints and make a demo-only audit record.\nconst form=$input.first().json;\nconst analysis=$('Score and Prepare Review').first().json;\nconst decision=String(form.decision??form['Decision']??'').trim();\nconst selected=String(form.selected_vendor??form['Selected Vendor']??'').trim();\nconst reason=String(form.review_notes??form['Reason / Notes']??'').trim();\nconst reject=decision==='Reject all - request fresh quotes';\nconst approve=decision==='Approve selected vendor (SIMULATION)';\nif(!approve&&!reject) throw new Error('Please choose approve or reject');\nconst match=analysis.quotes.find(q=>q.vendorId===selected);\nif(approve && (!match || !match.eligible)) throw new Error('The selected vendor is not an eligible supplier under this training policy');\nconst overridden=approve && selected!==analysis.proposedVendorId;\nif((overridden||reject)&&reason.length<10) {\n  const why = reject\n    ? 'You chose to reject all quotes'\n    : `You selected ${selected}, but the system recommended ${analysis.proposedVendorId}`;\n  return [{json:{valid:false,completionTitle:'Decision NOT recorded - reason required',completionMessage:`${why}. An override or rejection needs a reason of at least 10 characters in \"Reason / Notes\". Nothing was recorded. Please submit the purchase request again and add your reason, or keep the recommended vendor.`,trainingOnly:true}}];\n}\nconst status=reject?'REJECTED_FOR_DEMO':'APPROVED_FOR_DEMO';\nconst approvedVendor=reject?'':selected;\nconst auditRecord={\n  timestamp:new Date().toISOString(), purchaseRequest:analysis.purchaseRequest,\n  reviewer:analysis.reviewer, systemRecommendation:analysis.proposedVendorId,\n  recommendationScore:analysis.proposedScore,\n  decision:status,selectedVendor:approvedVendor,\n  isOverride:overridden,overrideReason:reason,\n  selectedLandedCostINR:approve?match.landedCost:null,\n  selectedScore:approve?match.score:null, trainingOnly:true,\n  actionTaken:'RECORD SIMULATED REVIEW ONLY - NO PO, NO EMAIL, NO PAYMENT'\n};\nconst message=reject\n  ?`Request ${analysis.purchaseRequest} was rejected for DEMO purposes. New quotes required. Reviewer: ${analysis.reviewer}. No order placed.`\n  :`Request ${analysis.purchaseRequest}: ${selected} ${overridden?'(human override)':'(system recommendation accepted)'} recorded as APPROVED FOR SIMULATION by ${analysis.reviewer}. No purchase order or payment was created.`;\nreturn [{json:{valid:true,completionTitle:'Decision recorded - training simulation',auditRecord,completionMessage:message,proposal:analysis.proposedVendorId,comparison:analysis.quotes.map(q=>({vendor:q.vendorId,landedCostINR:q.landedCost,score:q.score,eligible:q.eligible})),trainingOnly:true}}];\n"
+      },
+      "id": "302aef37-9aa7-4f06-b3cd-db6c7a3a8cc6",
+      "name": "Validate Human Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "={{ $('Validate Human Decision').first().json.completionTitle }}",
+        "completionMessage": "={{ $('Validate Human Decision').first().json.completionMessage }}",
+        "options": {}
+      },
+      "id": "42c92fa6-cd26-4145-a316-12f615d9443e",
+      "name": "Show Demo Result",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        1968,
+        32
+      ],
+      "webhookId": "94571713-6b23-48bc-a0cf-849e062a34ae"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Procurement Intake Form": {
+      "main": [
+        [
+          {
+            "node": "Analyze Quotations with Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Quotations with Gemini": {
+      "main": [
+        [
+          {
+            "node": "Load Uploaded Quotes and Policy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Restore Uploaded Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Uploaded Files": {
+      "main": [
+        [
+          {
+            "node": "Analyze Quotations (Backup Model)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Quotations (Backup Model)": {
+      "main": [
+        [
+          {
+            "node": "Load Uploaded Quotes and Policy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Uploaded Quotes and Policy": {
+      "main": [
+        [
+          {
+            "node": "Score and Prepare Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score and Prepare Review": {
+      "main": [
+        [
+          {
+            "node": "Human Decision Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human Decision Form": {
+      "main": [
+        [
+          {
+            "node": "Validate Human Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Human Decision": {
+      "main": [
+        [
+          {
+            "node": "Show Demo Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "18403b9c-f76e-44cc-b377-95639c30493f",
+  "meta": {
+    "instanceId": "7273b60fe73c03a6ba3733815c1914e90d94ece7ca78f8e1f59224b4281b849f"
+  },
+  "nodeGroups": [
+    {
+      "id": "905c5f13-9920-47b7-b576-9fb2f87349c2",
+      "nodeIds": [
+        "8acca2d2-918d-4c8a-a6ff-bec45659be19",
+        "5ec15e9e-3c2b-4927-8fee-4647067a4704",
+        "bd1b11fd-c8a0-4f64-9690-0faa95a944f7",
+        "5749fd67-5ccd-4246-a54d-0deffde7ac09"
+      ],
+      "name": "Extract quote details",
+      "description": "Reads every uploaded quotation PDF, falls back to a backup model when the main one is busy, then applies the purchase policy"
+    },
+    {
+      "id": "b23e6227-9766-4aa1-a2fc-a342d733064a",
+      "nodeIds": [
+        "76d77009-bcac-4716-b50c-4a6342df1dc1",
+        "db1c55fd-3c06-40cb-a38d-29a39e22cb7b",
+        "302aef37-9aa7-4f06-b3cd-db6c7a3a8cc6",
+        "42c92fa6-cd26-4145-a316-12f615d9443e"
+      ],
+      "name": "Collect human approval",
+      "description": "Scores eligible vendors, shows the reviewer a recommendation, and records a simulated approve or reject decision"
+    }
+  ],
+  "id": "Et0UbgfU2BAFZt6Q",
+  "tags": []
+}
